@@ -215,25 +215,56 @@ function isnow() {
    whendayofweek=$1; at=$2; whentime=$3;
    whenday=`toint "$whendayofweek"`
    whendayofweek=`tolower "$whendayofweek"`
+   whentimeoriginal=$whentime
    whentime=`echo "$whentime" | /bin/sed 's/:[0-9][0-9]$//' | /bin/sed -r 's/^([0-9])$/0\1/'`
 
    if [ "$whendayofweek" == "everyday" -o "$whendayofweek" == "daily" ]; then
-      whendayofweek=$nowdayofweek
+       whendayofweek=$nowdayofweek
    fi
 
    if [ "$whenday" == "" ]; then
-      if [ "$whendayofweek" != "$nowdayofweek" ]; then
-         whendayofweek=${whendayofweek%s}
-         if [ "$whendayofweek" != "$nowdayofweek" ]; then
-            return 0
-         fi
-      fi
+       if [ "$whendayofweek" != "$nowdayofweek" ]; then
+           whendayofweek=${whendayofweek%s}
+           if [ "$whendayofweek" != "$nowdayofweek" ]; then
+               if [ "$whendayofweek" != "mondays" -a "$whendayofweek" != "tuesdays" -a "$whendayofweek" != "wednesdays" -a "$whendayofweek" != "thursdays" -a "$whendayofweek" != "fridays" -a "$whendayofweek" != "saturdays" -a "$whendayofweek" != "sundays" ]; then
+                   warning "The day in the 'when' option in the configuration is malformed. Please read the README for examples."
+               fi
+               if [ "$at" != "at" ]; then
+                   warning "The 'when' option in the configuration doesn't contain an 'at'. Please read the README for examples."
+               fi
+               if [[ "$whentimeoriginal" != @([0-9][0-9])?(:[0-9][0-9]) ]]; then
+                   warning "The time in the 'when' option in the configuration is malformed or does not exist. Please read the README for examples."
+	       fi
+               return 0
+           fi
+       fi
    elif [ "$whenday" != "$nowday" ]; then
-      return 0
+       if [ "$whenday" -lt 1 -o "$whenday" -gt 31 ]; then
+	   warning "The numeric value of the day in the 'when' option in the configuration does not match a day. Please read the README for examples."
+       fi
+       if [ -z "$whentime" ]; then
+           warning "The 'when' variable in the configuration file is malformed. You either didn't specify the day or the time. Please read the README for eamples."
+       fi
+       if [ "$at" != "at" ]; then
+           warning "The 'when' option in the configuration doesn't contain an 'at'. Please read the README for examples."
+       fi
+       return 0
+   elif [ -z "$whentime" ]; then
+       warning "The 'when' variable in the configuration file is malformed. You either didn't specify the day or the time. Please read the README for examples."
+       return 0
    fi
 
-   [ "$at" == "at" ] || return 0
-   [ "$whentime" == "$nowtime" ] || return 0
+   if [ "$at" != "at" ]; then
+       warning "The 'when' option in the configuration doesn't contain an 'at'. Please read the README for examples."
+       return 0
+   fi
+
+   if [[ "$whentimeoriginal" != @([0-9][0-9])?(:[0-9][0-9]) ]]; then
+       warning "The time in the 'when' option in the configuration is malformed. Please read the README for examples."
+       return 0
+   elif [ "$whentime" != "$nowtime" ]; then
+       return 0
+   fi
 
    return 1
 }
@@ -326,32 +357,32 @@ function process_action() {
    # start locked section : avoid concurrent execution of the same backup
    # uses a construct specific to shell scripts with flock. See man flock for details
    {
-       debug "executing handler in locked section controlled by $lockfile"
-       flock -x -w 5 200
-       # if all is good, we acquired the lock
-       if [ $? -eq 0 ]; then
+      debug "executing handler in locked section controlled by $lockfile"
+      flock -x -w 5 200
+      # if all is good, we acquired the lock
+      if [ $? -eq 0 ]; then
 
-	   let "actions_run += 1"
+         let "actions_run += 1"
 
-           # call the handler:
-	   echo_debug_msg=1
-	   (
-	       . $scriptdirectory/$suffix $file
-	   ) 2>&1 | (
-	       while read a; do
-		   echo $a >> $bufferfile
-		   [ $debug ] && colorize "$a"
-	       done
-	   )
-	   retcode=$?
-           # ^^^^^^^^ we have a problem! we can't grab the return code "$?". grrr.
-	   echo_debug_msg=0
+         # call the handler:
+         echo_debug_msg=1
+         (
+            . $scriptdirectory/$suffix $file
+         ) 2>&1 | (
+            while read a; do
+               echo $a >> $bufferfile
+               [ $debug ] && colorize "$a"
+            done
+         )
+         retcode=$?
+         # ^^^^^^^^ we have a problem! we can't grab the return code "$?". grrr.
+         echo_debug_msg=0
 
-       else
-	   # a backup is probably ongoing already, so display an error message
-	   debug "failed to acquire lock $lockfile"
-	   echo "Fatal: Could not acquire lock $lockfile. A backup is probably already running for $file." >>$bufferfile
-       fi
+      else
+         # a backup is probably ongoing already, so display an error message
+         debug "failed to acquire lock $lockfile"
+         echo "Fatal: Could not acquire lock $lockfile. A backup is probably already running for $file." >>$bufferfile
+      fi
    } 200> $lockfile
    # end of locked section
 
@@ -508,6 +539,8 @@ getconf PGSQLUSER postgres
 getconf GZIP /bin/gzip
 getconf GZIP_OPTS --rsyncable
 getconf RSYNC /usr/bin/rsync
+getconf DSYNC /usr/bin/dsync
+getconf DOVEADM /usr/bin/doveadm
 getconf admingroup root
 
 # initialize vservers support
@@ -542,7 +575,7 @@ errormsg=""
 if [ "$singlerun" ]; then
    files=$singlerun
 else
-   files=`find $configdirectory -follow -mindepth 1 -maxdepth 1 -type f ! -name '.*.swp' | sort -n`
+   files=`find $configdirectory -follow -mindepth 1 -maxdepth 1 -type f ! -name '.*.swp' ! -name '*~' | sort -n`
 
    if [ -z "$files" ]; then
       info "No backup actions configured in '$configdirectory', run ninjahelper!"
@@ -555,9 +588,9 @@ for file in $files; do
 
    check_perms ${file%/*} # check containing dir
    check_perms $file
-   suffix="${file##*.}"
    base=`basename $file`
-   if [ "${base:0:1}" == "0" -o "$suffix" == "disabled" ]; then
+   suffix="${base##*.}"
+   if [ "${base:0:1}" == "0" -o "$suffix" == "disabled" -o "$suffix" == "$base" ]; then
       info "Skipping $file"
       continue
    fi
@@ -590,7 +623,7 @@ if [ $doit == 1 ]; then
 
    {
       for ((i=0; i < ${#messages[@]} ; i++)); do
-          echo ${messages[$i]}
+         echo ${messages[$i]}
       done
       echo -e "$errormsg"
       if [ "$reportspace" == "yes" ]; then
@@ -617,6 +650,7 @@ if [ -n "$reporthost" ]; then
    debug "send $logfile to $reportuser@$reporthost:$reportdirectory"
    rsync -qt $logfile $reportuser@$reporthost:$reportdirectory
 fi
+
 function generate_post_data() {
   cat <<EOF
 {
@@ -663,3 +697,4 @@ if [ -n "$ICINGA2_SERVER_ADDRESS" ] && [ $actions_run != 0 ]; then
   # Reschedule the next dummy backupninja check
   curl -k -s -u $ICINGA2_API_USER:$ICINGA2_API_PASSWORD -H 'Accept: application/json' -X POST "https://$ICINGA2_SERVER_ADDRESS:$ICINGA2_API_PORT/v1/actions/reschedule-check?service=${ICINGA2_HOSTNAME}!backupninja" --data "$(generate_post_reschedule)" > /dev/null
 fi
+
