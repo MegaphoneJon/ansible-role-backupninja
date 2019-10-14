@@ -27,7 +27,7 @@
     dest: /usr/sbin/backupninja
 
 - name: Create a borg repo local to the remote host
-  command: borg init /opt/borg
+  command: borg init /opt/borg -e repokey-blake2
   args:
     creates: /opt/borg/config
   environment:
