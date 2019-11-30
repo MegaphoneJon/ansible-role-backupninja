@@ -8,18 +8,6 @@
       - borgbackup
       - backupninja
 
-- name: Install borgbackup backport (on Debian 8)
-  apt:
-    name: borgbackup
-    default_release: jessie-backports
-  when: ansible_distribution == 'Debian' and ansible_distribution_version == '8'
-
-- name: Install the patched MySQL handler
-  copy:
-    force: yes
-    src: files/mysql
-    dest: /usr/share/backupninja/mysql
-
 - name: Install the Icinga-aware fork
   copy:
     force: yes
