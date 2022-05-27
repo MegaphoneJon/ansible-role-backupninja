@@ -15,9 +15,9 @@
     dest: /usr/sbin/backupninja
 
 - name: Create a borg repo local to the remote host
-  command: borg init /opt/borg -e repokey-blake2
+  command: borg init {{ local_borg_dir }} -e repokey-blake2
   args:
-    creates: /opt/borg/config
+    creates: "{{ local_borg_dir }}/config"
   environment:
     BORG_PASSPHRASE: "{{ lookup('passwordstore', client + '/' + hostname + '/borg/local create=true length=32') }}"
 

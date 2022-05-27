@@ -1,6 +1,6 @@
 #!/bin/sh                                                                                                                                                                                                          
 # borg backupninja backup script
-REPOSITORY=/opt/borg
+REPOSITORY={{ local_borg_dir }}
 export BORG_PASSPHRASE='{{ lookup('passwordstore', client + '/' + hostname + '/borg/local create=true length=32') }}'
 
 info "Starting borg backup"

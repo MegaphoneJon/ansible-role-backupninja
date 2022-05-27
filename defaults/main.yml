@@ -1,2 +1,3 @@
 ---
 databases: "all"
+local_borg_dir: "/opt/borg"
