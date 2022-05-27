@@ -29,6 +29,7 @@ $REPOSITORY::'{hostname}-{now:%Y-%m-%d}' \
 --exclude '/home/*/.cache' \
 --exclude '/root/.cache' \
 --exclude '/home/*/.mozilla/firefox/*/Cache' \
+--exclude '/var/backups/borg' \
 --exclude '/var/lib/docker/containers'
 ) 2>&1)
 if [ $? -ne 0 ]
