@@ -27,7 +27,10 @@ $REPOSITORY::'{hostname}-{now:%Y-%m-%d}' \
 --exclude '/root/.cache' \
 --exclude '/home/*/.mozilla/firefox/*/Cache' \
 --exclude '/var/backups/borg' \
---exclude '/var/lib/docker/containers'
+--exclude '/var/lib/docker/containers' \
+--exclude '/home/*/.composer/cache' \
+--exclude '/home/*/.config/Code/*/bmewburn.vscode-intelephense-client' \
+--exclude '/home/*/.config/google-chrome'
 ) 2>&1)
 if [ $? -ne 0 ] 
   then
