@@ -13,10 +13,8 @@ borg create --warning --filter=AME --stats  --list --compression lz4         \
 --remote-path $REMOTE_PATH \
 $REPOSITORY::'{hostname}-{now:%Y-%m-%d}' \
 /etc \
-/var/spool/cron \
-/var/backups \
-/var/www \
-/var/log \
+/var \
+/opt \
 /root \
 /home \
 /usr/local/bin \
@@ -24,13 +22,16 @@ $REPOSITORY::'{hostname}-{now:%Y-%m-%d}' \
 /var/lib/dpkg/status \
 /var/lib/dpkg/status-old \
 --exclude '*/templates_c' \
---exclude '*/tmp' \
+--exclude '*/tmp/' \
+--exclude '*/temp/' \
 --exclude '/home/*/.steam/steam/steamapps/common/' \
 --exclude '/home/*/.cache' \
 --exclude '/root/.cache' \
 --exclude '/home/*/.mozilla/firefox/*/Cache' \
 --exclude '/var/backups/borg' \
---exclude '/var/lib/docker/containers' \
+--exclude '/opt/borg' \
+--exclude '/var/cache' \
+--exclude '/var/lib' \
 --exclude '/home/*/.composer/cache' \
 --exclude '/home/*/.config/Code/*/bmewburn.vscode-intelephense-client' \
 --exclude '/home/*/.config/google-chrome'
