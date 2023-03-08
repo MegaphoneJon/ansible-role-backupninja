@@ -29,6 +29,7 @@
   with_items:
     - 10-info.sys
     - 30-databases.mysql
+    - 35-structure-only.sh
     - 50-borg-local.sh
     - 60-borg-remote.sh
 
