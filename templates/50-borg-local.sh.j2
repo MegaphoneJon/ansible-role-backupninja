@@ -9,30 +9,31 @@ info "Starting borg backup"
 OUTPUT=$( (
 borg create --warning --filter=AME --stats  --list --compression lz4         \
 $REPOSITORY::'{hostname}-{now:%Y-%m-%d}' \
-/etc \
-/var \
-/root \
-/home \
-/opt \
-/usr/local/bin \
-/usr/local/sbin \
-/var/lib/dpkg/status \
-/var/lib/dpkg/status-old \
+etc \
+var \
+root \
+home \
+opt \
+srv \
+usr/local/bin \
+usr/local/sbin \
+var/lib/dpkg/status \
+var/lib/dpkg/status-old \
 --exclude '*/templates_c' \
 --exclude '*/tmp/' \
 --exclude '*/temp/' \
---exclude '/home/*/.steam/steam/steamapps/common/' \
---exclude '/home/*/.cache' \
---exclude '/root/.cache' \
---exclude '/home/*/.mozilla/firefox/*/Cache' \
---exclude '/var/backups/borg' \
---exclude '/opt/borg' \
---exclude '/var/cache' \
---exclude '/var/lib' \
---exclude '/home/*/.composer/cache' \
---exclude '/home/*/.config/Code/*/bmewburn.vscode-intelephense-client' \
---exclude '/home/*/.config/google-chrome' \
---exclude '/home/*/.config/Nextcloud/logs' \
+--exclude 'home/*/.steam/steam/steamapps/common/' \
+--exclude 'home/*/.cache' \
+--exclude 'root/.cache' \
+--exclude 'home/*/.mozilla/firefox/*/Cache' \
+--exclude 'var/backups/borg' \
+--exclude 'opt/borg' \
+--exclude 'var/cache' \
+--exclude 'var/lib' \
+--exclude 'home/*/.composer/cache' \
+--exclude 'home/*/.config/Code/*/bmewburn.vscode-intelephense-client' \
+--exclude 'home/*/.config/google-chrome' \
+--exclude 'home/*/.config/Nextcloud/logs' \
 --exclude '*/site/default/files/css/' \
 --exclude '*/site/default/files/js/'
 ) 2>&1)
@@ -52,13 +53,27 @@ if [ $? -ne 0 ]
 fi
 info $OUTPUT
 
-# Check the integrity of the backup.
-OUTPUT=$( (
-borg check $REPOSITORY
-) 2>&1)
-if [ $? -ne 0 ] 
+DOW=$(date +'%A')
+  if [[ $DOW == 'Sunday' ]]
   then
-  warning $OUTPUT
+  # Check the integrity of the backup.
+  OUTPUT=$( (
+  borg check $REPOSITORY
+  ) 2>&1)
+  if [ $? -ne 0 ] 
+    then
+    warning $OUTPUT
+  fi
+  info $OUTPUT
+
+  # Compact the backup.
+  OUTPUT=$( (
+  borg check $REPOSITORY
+  ) 2>&1)
+  if [ $? -ne 0 ] 
+    then
+    warning $OUTPUT
+  fi
+  info $OUTPUT
+  unset BORG_PASSPHRASE
 fi
-info $OUTPUT
-unset BORG_PASSPHRASE

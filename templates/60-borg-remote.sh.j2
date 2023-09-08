@@ -55,13 +55,27 @@ if [ $? -ne 0 ]
 fi
 info $OUTPUT
 
-# Check the integrity of the backup.
-OUTPUT=$( (
-borg check $REPOSITORY --remote-path $REMOTE_PATH
-) 2>&1)
-if [ $? -ne 0 ]
+DOW=$(date +'%A')
+  if [[ $DOW == 'Sunday' ]]
   then
-  warning $OUTPUT
+  # Check the integrity of the backup.
+  OUTPUT=$( (
+  borg check $REPOSITORY
+  ) 2>&1)
+  if [ $? -ne 0 ]
+    then
+    warning $OUTPUT
+  fi
+  info $OUTPUT
+
+  # Compact the backup.
+  OUTPUT=$( (
+  borg check $REPOSITORY
+  ) 2>&1)
+  if [ $? -ne 0 ]
+    then
+    warning $OUTPUT
+  fi
+  info $OUTPUT
+  unset BORG_PASSPHRASE
 fi
-info $OUTPUT
-unset BORG_PASSPHRASE

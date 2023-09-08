@@ -1,0 +1,39 @@
+[source]
+init = no
+create_options = --warning --list --filter=AME
+keep = 0
+prune_options = --keep-daily=15 --keep-weekly=9 --keep-monthly=6
+## files to include in the backup
+include = etc
+include = var
+include = root
+include = home
+include = opt
+include = srv
+include = usr/local/bin
+include = usr/local/sbin
+include = var/lib/dpkg/status
+include = var/lib/dpkg/status-old
+
+## files to exclude from the backup
+exclude = */templates_c
+exclude = */tmp/
+exclude = */temp/
+exclude = home/*/.steam/steam/steamapps/common
+exclude = home/*/.cache
+exclude = root/.cache
+exclude = home/*/.mozilla/firefox/*/Cache
+exclude = var/backups/borg
+exclude = var/lib
+exclude = home/*/.composer/cache \
+exclude = home/*/.config/Code/*/bmewburn.vscode-intelephense-client
+exclude = home/*/.config/google-chrome
+exclude = home/*/.config/Nextcloud/logs
+exclude = */site/default/files/css/
+exclude = */site/default/files/js/
+
+[dest]
+directory = {{ local_borg_dir }}
+host = localhost
+archive = {hostname}-{now:%Y-%m-%d}
+passphrase = {{ lookup('passwordstore', client + '/' + hostname + '/borg/local length=32') }}

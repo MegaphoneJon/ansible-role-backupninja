@@ -1,0 +1,41 @@
+[source]
+init = no
+create_options = --warning --list --filter=AME --remote-path /usr/local/bin/borg1/borg1
+keep = 0
+prune_options = --keep-daily=15 --keep-weekly=9 --keep-monthly=6 --remote-path /usr/local/bin/borg1/borg1
+## files to include in the backup
+include = etc
+include = var
+include = root
+include = home
+include = opt
+include = srv
+include = usr/local/bin
+include = usr/local/sbin
+include = var/lib/dpkg/status
+include = var/lib/dpkg/status-old
+
+## files to exclude from the backup
+exclude = */templates_c
+exclude = */tmp/
+exclude = */temp/
+exclude = home/*/.steam/steam/steamapps/common
+exclude = home/*/.cache
+exclude = root/.cache
+exclude = home/*/.mozilla/firefox/*/Cache
+exclude = var/backups/borg
+exclude = opt/borg
+exclude = var/lib
+exclude = home/*/.composer/cache \
+exclude = home/*/.config/Code/*/bmewburn.vscode-intelephense-client
+exclude = home/*/.config/google-chrome
+exclude = home/*/.config/Nextcloud/logs
+exclude = */site/default/files/css/
+exclude = */site/default/files/js/
+
+[dest]
+directory = /./{{ client + '-' + hostname }}
+user = {{ rsyncnet_user }}
+host = {{ rsyncnet_server }}
+archive = {hostname}-{now:%Y-%m-%d}
+passphrase = {{ lookup('passwordstore', client + '/' + hostname + '/borg/remote length=32') }}
