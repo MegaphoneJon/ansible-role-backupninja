@@ -45,7 +45,7 @@ info $OUTPUT
 
 # Remove old backups.
 OUTPUT=$( (
-borg prune -v $REPOSITORY --prefix '{hostname}-' --keep-daily=15 --keep-weekly=9 --keep-monthly=6
+borg prune -v $REPOSITORY --glob-archives '{hostname}-*' --keep-daily=15 --keep-weekly=9 --keep-monthly=6
 ) 2>&1)
 if [ $? -ne 0 ] 
   then
