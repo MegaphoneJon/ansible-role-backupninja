@@ -37,9 +37,23 @@ $REPOSITORY::'{hostname}-{now:%Y-%m-%d}' \
 --exclude '*/site/default/files/css/' \
 --exclude '*/site/default/files/js/'
 ) 2>&1)
-if [ $? -ne 0 ] 
+# Are there any errors from the backup?
+if [ $? -ne 0 ]
+then
+  # Is the error that a file changed?
+  echo $OUTPUT | grep 'file changed while we backed it up'
+  if [ $? -eq 0 ]
   then
-  warning $OUTPUT
+    # Is the changed file one that's ok to change?  Currently files in /var/log, or named "whatever". 
+    echo $OUTPUT  | sed --regexp-extended 's/ (A|M) /\n\1 /g' | grep -v --perl-regexp '(?:\/var\/log|whatever).*file changed while we backed it up' | grep 'file changed while we backed it up'
+    if [ $? -ne 1 ]
+    then
+      warning 'Hey some files changed and were not filtered out by my new magic'
+      warning $OUTPUT
+    fi
+  else
+    warning $OUTPUT
+  fi
 fi
 info $OUTPUT
 
@@ -60,7 +74,7 @@ DOW=$(date +'%A')
   OUTPUT=$( (
   borg check $REPOSITORY
   ) 2>&1)
-  if [ $? -ne 0 ] 
+  if [ $? -ne 0 ]
     then
     warning $OUTPUT
   fi
@@ -70,7 +84,7 @@ DOW=$(date +'%A')
   OUTPUT=$( (
   borg check $REPOSITORY
   ) 2>&1)
-  if [ $? -ne 0 ] 
+  if [ $? -ne 0 ]
     then
     warning $OUTPUT
   fi
