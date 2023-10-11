@@ -18,23 +18,22 @@ $REPOSITORY::'{hostname}-{now:%Y-%m-%d}' \
 /usr/local/sbin \
 /var/lib/dpkg/status \
 /var/lib/dpkg/status-old \
---exclude '*/templates_c' \
---exclude '*/tmp/' \
---exclude '*/temp/' \
+--exclude '**/templates_c' \
+--exclude '**/tmp/' \
+--exclude '**/temp/' \
 --exclude '/home/*/.steam/steam/steamapps/common/' \
 --exclude '/home/*/.cache' \
 --exclude '/root/.cache' \
 --exclude '/home/*/.mozilla/firefox/*/Cache' \
---exclude '/var/backups/borg' \
---exclude '/opt/borg' \
+--exclude '**/borg' \
 --exclude '/var/cache' \
 --exclude '/var/lib' \
 --exclude '/home/*/.composer/cache' \
 --exclude '/home/*/.config/Code/*/bmewburn.vscode-intelephense-client' \
 --exclude '/home/*/.config/google-chrome' \
 --exclude '/home/*/.config/Nextcloud/logs' \
---exclude '*/site/default/files/css/' \
---exclude '*/site/default/files/js/'
+--exclude '**/site/default/files/css/' \
+--exclude '**/site/default/files/js/'
 ) 2>&1)
 # Are there any errors from the backup?
 if [ $? -ne 0 ]
