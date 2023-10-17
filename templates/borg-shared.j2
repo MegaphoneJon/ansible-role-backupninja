@@ -65,27 +65,27 @@ if [ $? -ne 0 ]
 fi
 info $OUTPUT
 
-DOW=$(date +'%A')
-  if [[ $DOW == 'Sunday' ]]
-  then
-  # Compact the backup.
-  OUTPUT=$( (
-  borg compact $REPOSITORY
-  ) 2>&1)
-  if [ $? -ne 0 ]
-    then
-    warning $OUTPUT
-  fi
-  info $OUTPUT
+# Compact the backup.
+OUTPUT=$( (
+borg compact $REPOSITORY
+) 2>&1)
+if [ $? -ne 0 ]
+then
+  warning $OUTPUT
+fi
+info $OUTPUT
 
+DOW=$(date +'%A')
+if [[ $DOW == 'Sunday' ]]
+then
   # Check the integrity of the backup.
   OUTPUT=$( (
   borg check $REPOSITORY
   ) 2>&1)
   if [ $? -ne 0 ]
-    then
+  then
     warning $OUTPUT
   fi
   info $OUTPUT
-  unset BORG_PASSPHRASE
 fi
+unset BORG_PASSPHRASE
