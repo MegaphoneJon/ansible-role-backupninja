@@ -68,9 +68,9 @@ info $OUTPUT
 DOW=$(date +'%A')
   if [[ $DOW == 'Sunday' ]]
   then
-  # Check the integrity of the backup.
+  # Compact the backup.
   OUTPUT=$( (
-  borg check $REPOSITORY
+  borg compact $REPOSITORY
   ) 2>&1)
   if [ $? -ne 0 ]
     then
@@ -78,7 +78,7 @@ DOW=$(date +'%A')
   fi
   info $OUTPUT
 
-  # Compact the backup.
+  # Check the integrity of the backup.
   OUTPUT=$( (
   borg check $REPOSITORY
   ) 2>&1)
