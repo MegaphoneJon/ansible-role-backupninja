@@ -32,8 +32,8 @@ $REPOSITORY::'{hostname}-{now:%Y-%m-%d}' \
 --exclude '/home/*/.config/Code/*/bmewburn.vscode-intelephense-client' \
 --exclude '/home/*/.config/google-chrome' \
 --exclude '/home/*/.config/Nextcloud/logs' \
---exclude '**/site/default/files/css/' \
---exclude '**/site/default/files/js/'
+--exclude '**/sites/default/files/css/' \
+--exclude '**/sites/default/files/js/'
 ) 2>&1)
 # Are there any errors from the backup?
 if [ $? -ne 0 ]
@@ -42,8 +42,8 @@ then
   echo $OUTPUT | grep 'file changed while we backed it up'
   if [ $? -eq 0 ]
   then
-    # Is the changed file one that's ok to change?  Currently files in /var/log, or in "wp-content/wflogs".
-    echo $OUTPUT  | sed --regexp-extended 's/ (A|M) /\n\1 /g' | grep -v --perl-regexp '(?:\/var\/log|.*wp-content\/wflogs).*file changed while we backed it up' | grep 'file changed while we backed it up'
+    # Is the changed file one that's ok to change?  Currently files in /var/log, or in "wp-content/wflogs" or "ConfigAndLog".
+    echo $OUTPUT  | sed --regexp-extended 's/ (A|M) /\n\1 /g' | grep -v --perl-regexp '(?:\/var\/log|.*wp-content\/wflogs|.*ConfigAndLog).*file changed while we backed it up' | grep 'file changed while we backed it up'
     if [ $? -ne 1 ]
     then
       warning 'Hey some files changed and were not filtered out by my new magic'
