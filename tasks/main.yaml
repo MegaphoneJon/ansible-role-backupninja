@@ -33,14 +33,6 @@
     - 50-borg-local.sh
     - 60-borg-remote.sh
 
-- name: Remove old borg backups
-  ansible.builtin.file:
-    path: "{{ '/etc/backup.d/' + item }}"
-    state: absent
-  with_items:
-    - 50-local.borg
-    - 60-remote.borg
-
 - name: Configure backupninja.conf with Icinga2
   template:
     src: templates/backupninja.conf.j2
