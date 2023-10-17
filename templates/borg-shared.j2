@@ -65,9 +65,10 @@ if [ $? -ne 0 ]
 fi
 info $OUTPUT
 
+# FIXME: Remove cleanup-commits, that's only needed once.
 # Compact the backup.
 OUTPUT=$( (
-borg compact $REPOSITORY
+borg compact --cleanup-commits {% if remote_path is defined %} --remote-path $REMOTE_PATH {% endif %} $REPOSITORY
 ) 2>&1)
 if [ $? -ne 0 ]
 then
@@ -80,7 +81,7 @@ if [[ $DOW == 'Sunday' ]]
 then
   # Check the integrity of the backup.
   OUTPUT=$( (
-  borg check $REPOSITORY
+  borg check {% if remote_path is defined %} --remote-path $REMOTE_PATH {% endif %} $REPOSITORY
   ) 2>&1)
   if [ $? -ne 0 ]
   then
