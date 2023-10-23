@@ -43,7 +43,7 @@ then
   if [ $? -eq 0 ]
   then
     # Is the changed file one that's ok to change?  Currently files in /var/log, or in "wp-content/wflogs" or "ConfigAndLog".
-    echo $OUTPUT  | sed --regexp-extended 's/ (A|M) /\n\1 /g' | grep -v --perl-regexp '(?:\/var\/log|.*wp-content\/wflogs|.*ConfigAndLog).*file changed while we backed it up' | grep 'file changed while we backed it up'
+    echo $OUTPUT  | sed --regexp-extended 's/ (A|M) /\n\1 /g' | grep -v --perl-regexp '(?:\/var\/log|.*wp-content\/wflogs|.*ConfigAndLog|firefox/\w+.default).*file changed while we backed it up' | grep 'file changed while we backed it up'
     if [ $? -ne 1 ]
     then
       warning 'Hey some files changed and were not filtered out by my new magic'
