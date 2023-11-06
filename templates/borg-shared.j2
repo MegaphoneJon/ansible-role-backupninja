@@ -34,6 +34,7 @@ $REPOSITORY::'{hostname}-{now:%Y-%m-%d}' \
 --exclude '/home/*/.config/google-chrome' \
 --exclude '/home/*/.config/Nextcloud/logs' \
 --exclude '**/sites/default/files/css/' \
+{% include "files/" + fqdn + "/borg-options.j2" ignore missing %}
 --exclude '**/sites/default/files/js/'
 ) 2>&1)
 # Are there any errors from the backup?
