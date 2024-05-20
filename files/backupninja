@@ -432,7 +432,7 @@ function process_action() {
 setupcolors
 conffile="/etc/backupninja.conf"
 loglevel=3
-version="1.2.1"
+version="1.2.2"
 
 ## process command line options
 
@@ -513,6 +513,8 @@ setfile $conffile
 getconf configdirectory /etc/backup.d
 getconf scriptdirectory /usr/share/backupninja
 getconf reportdirectory
+getconf reportprom
+getconf prom_textfile_dir /var/lib/prometheus/node-exporter
 getconf reportemail
 getconf reporthost
 getconf reportspace
@@ -601,10 +603,10 @@ for file in $files; do
    fi
 done
 
-## mail the messages to the report address
+## reporting
 
 if [ $actions_run == 0 ]; then doit=0
-elif [ "$reportemail" == "" ]; then doit=0
+elif [ "$reportemail" == "" -a "$reportprom" == "" ]; then doit=0
 elif [ $fatals != 0 ]; then doit=1
 elif [ $errors != 0 ]; then doit=1
 elif [ $halts != 0 ]; then doit=1
@@ -614,36 +616,82 @@ else doit=0
 fi
 
 if [ $doit == 1 ]; then
-   if [ -x "$(which mail 2>/dev/null)" ]; then
-      debug "send report to $reportemail"
-      hostname=`hostname`
-      [ $warnings == 0 ] || subject="WARNING"
-      [ $errors == 0 ] || subject="ERROR"
-      [ $fatals == 0 ] || subject="FAILED"
-      [ $halts == 0 ] || subject="HALTED"
+   if [ ! -z "$reportprom" ]; then
+      if [ -d "$prom_textfile_dir" ]; then
+         debug "reporting to prometheus"
+         hostname=`hostname`
 
-      {
-         for ((i=0; i < ${#messages[@]} ; i++)); do
-            echo ${messages[$i]}
-         done
-         echo -e "$errormsg"
-         if [ "$reportspace" == "yes" ]; then
-            previous=""
-            for i in $(ls "$configdirectory"); do
-               backuploc=$(grep ^directory "$configdirectory"/"$i" | /usr/bin/awk '{print $3}')
-               if [ "$backuploc" != "$previous" -a -n "$backuploc" -a -d "$backuploc" ]; then
-                  df -h "$backuploc"
-                  previous="$backuploc"
-               fi
-            done
+         # set some defaults, so there aren't empty strings
+         [ ! -z $warnings ] || warnings=0
+         [ ! -z $errors ] || errors=0
+         [ ! -z $fatals ] || fatals=0
+         [ ! -z $halts ] || halts=0
+         [ ! -z $actions_run ] || actions_run=0
+
+         output_file="${prom_textfile_dir}/backupninja.prom"
+         tmp_file="${output_file}.$$"
+         trap "rm -f $tmp_file 2>/dev/null" EXIT INT TERM
+         cat <<EOF > "$tmp_file"
+# HELP backupninja_warnings Number of warnings reported by Backupninja
+# TYPE backupninja_warnings gauge
+# HELP backupninja_errors Number of errors reported by Backupninja
+# TYPE backupninja_errors gauge
+# HELP backupninja_fatals Number of fatals reported by Backupninja
+# TYPE backupninja_fatals gauge
+# HELP backupninja_halts Number of halts reported by Backupninja
+# TYPE backupninja_halts gauge
+# HELP backupninja_actions Number of actions run by Backupninja
+# TYPE backupninja_actions gauge
+backupninja_warnings{host="$hostname"} $warnings
+backupninja_errors{host="$hostname"} $errors
+backupninja_fatals{host="$hostname"} $fatals
+backupninja_halts{host="$hostname"} $halts
+backupninja_actions{host="$hostname"} $actions_run
+EOF
+         if [ $? -gt 0 ]; then
+            rm -f "$tmp_file" 2>/dev/null
+            error "could not write metrics to ${prom_textfile_dir}!"
+            let "errors +-1"
+         else
+            mv -f "$tmp_file" "$output_file"
+            chmod 0644 "$output_file"
          fi
-      } | fold -s -w "$reportwrap" | mail -s "backupninja: $hostname $subject" $reportemail
-   else
-      error "Unable to locate mail executable, email report not sent!"
-      let "errors += 1"
+      else
+         error "$prom_textfile_dir does not exist!"
+         let "errors +-1"
+      fi
+   fi
+   if [ ! -z "$reportemail" ]; then
+      if [ -x "$(which mail 2>/dev/null)" ]; then
+         debug "send report to $reportemail"
+         hostname=`hostname`
+         [ $warnings == 0 ] || subject="WARNING"
+         [ $errors == 0 ] || subject="ERROR"
+         [ $fatals == 0 ] || subject="FAILED"
+         [ $halts == 0 ] || subject="HALTED"
+
+         {
+            for ((i=0; i < ${#messages[@]} ; i++)); do
+               echo ${messages[$i]}
+            done
+            echo -e "$errormsg"
+            if [ "$reportspace" == "yes" ]; then
+               previous=""
+               for i in $(ls "$configdirectory"); do
+                  backuploc=$(grep ^directory "$configdirectory"/"$i" | /usr/bin/awk '{print $3}')
+                  if [ "$backuploc" != "$previous" -a -n "$backuploc" -a -d "$backuploc" ]; then
+                     df -h "$backuploc"
+                     previous="$backuploc"
+                  fi
+               done
+            fi
+         } | fold -s -w "$reportwrap" | mail -s "backupninja: $hostname $subject" $reportemail
+      else
+         error "Unable to locate mail executable, email report not sent!"
+         let "errors += 1"
+      fi
    fi
 fi
-
 if [ $actions_run != 0 ]; then
    info "FINISHED: $actions_run actions run. $fatals fatal. $errors error. $warnings warning."
    if [ "$halts" != "0" ]; then
