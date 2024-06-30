@@ -22,10 +22,10 @@ $REPOSITORY::'{hostname}-{now:%Y-%m-%d}' \
 --exclude '**/tmp/' \
 --exclude '**/temp/' \
 --exclude '/home/*/.steam/steam/steamapps/common/' \
---exclude '/home/*/.cache' \
+--exclude '/home/**/.cache' \
 --exclude '/root/.cache' \
---exclude '/home/*/.mozilla/firefox/*/Cache' \
---exclude '/home/*/.thunderbird/*/global-messages-db.sqlite' \
+--exclude '/home/**/.mozilla/firefox/*/Cache' \
+--exclude '/home/**/.thunderbird/*/global-messages-db.sqlite' \
 --exclude '**/borg' \
 --exclude '/var/cache' \
 --exclude '/var/lib' \
@@ -33,6 +33,8 @@ $REPOSITORY::'{hostname}-{now:%Y-%m-%d}' \
 --exclude '/home/*/.config/Code/*/bmewburn.vscode-intelephense-client' \
 --exclude '/home/*/.config/google-chrome' \
 --exclude '/home/*/.config/Nextcloud/logs' \
+--exclude '/home/*/Games' \
+--exclude '/home/*/.vscode-server' \
 --exclude '**/sites/default/files/css/' \
 {% include "files/" + fqdn + "/borg-options.j2" ignore missing %}
 --exclude '**/sites/default/files/js/'
