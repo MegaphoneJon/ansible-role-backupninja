@@ -23,18 +23,33 @@
 
 - name: Configure backupninja
   template:
-    src: "{{ 'templates/' + item + '.j2' }}"
-    dest: "{{ '/etc/backup.d/' + item }}"
+    src: "{{ 'templates/' + item.value.name + '.j2' }}"
+    dest: "{{ '/etc/backup.d/' + item.value.name }}"
     mode: 0600
-  with_items:
-    - 10-info.sys
-    - 30-databases.mysql
-    - 35-structure-only.sh
-    - 50-borg-local.sh
-    - 60-borg-remote.sh
+  with_dict:
+    info:
+      name: 10-info.sys
+    db:
+      name: 30-databases.mysql
+    db-structure:
+      name: 35-structure-only.sh
+    borg-local:
+      name: 50-borg-local.sh
+      shortname: local
+    borg-remote:
+      name: 60-borg-remote.sh
+      shortname: remote
 
 - name: Configure backupninja.conf with Icinga2
   template:
     src: templates/backupninja.conf.j2
     dest: /etc/backupninja.conf
     mode: 0600
+
+- name: Set up a logrotate
+  ansible.builtin.copy:
+    src: files/borg-logrotate
+    dest: /etc/logrotate.d/borg
+    owner: root
+    group: root
+    mode: '0644'

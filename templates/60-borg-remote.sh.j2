@@ -1,6 +1,7 @@
 #!/bin/sh
 # borg backupninja backup script
 REPOSITORY="{{ rsyncnet_user }}@{{ rsyncnet_server }}:{{ client + '-' + hostname }}"
+export BORG_RELOCATED_REPO_ACCESS_IS_OK=yes
 export BORG_PASSPHRASE='{{ lookup('passwordstore', client + '/' + hostname + '/borg/remote create=true length=32') }}'
 # On rsync.net: Specify /usr/local/bin/borg/borg for borg 0.29; /usr/local/bin/borg1 for 1.x
 {% set remote_path = '/usr/local/bin/borg1/borg1' %}

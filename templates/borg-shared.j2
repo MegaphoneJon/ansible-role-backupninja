@@ -35,10 +35,11 @@ $REPOSITORY::'{hostname}-{now:%Y-%m-%d}' \
 --exclude '/home/*/.config/Nextcloud/logs' \
 --exclude '/home/*/Games' \
 --exclude '/home/*/.vscode-server' \
+--exclude '/home/*/drush-backups' \
 --exclude '**/sites/default/files/css/' \
 {% include "files/" + fqdn + "/borg-options.j2" ignore missing %}
 --exclude '**/sites/default/files/js/'
-) 2>&1)
+) 2>&1 | tee /var/log/borg.{{ item.value.shortname }}.log)
 # Are there any errors from the backup?
 if [ $? -ne 0 ]
 then
@@ -62,7 +63,7 @@ info $OUTPUT
 # Remove old backups.
 OUTPUT=$( (
 borg prune -v $REPOSITORY --glob-archives '{hostname}-*' --keep-daily=15 --keep-weekly=9 --keep-monthly=6 {% if remote_path is defined %} --remote-path $REMOTE_PATH {% endif %} 
-) 2>&1)
+) 2>&1 | tee --append /var/log/borg.{{ item.value.shortname }}.log)
 if [ $? -ne 0 ]
   then
   warning $OUTPUT
@@ -74,7 +75,7 @@ info $OUTPUT
 # Compact the backup.
 OUTPUT=$( (
 borg compact {% if remote_path is defined %} --remote-path $REMOTE_PATH {% endif %} $REPOSITORY
-) 2>&1)
+) 2>&1 | tee --append /var/log/borg.{{ item.value.shortname }}.log)
 if [ $? -ne 0 ]
 then
   warning $OUTPUT
@@ -88,7 +89,7 @@ then
   # Check the integrity of the backup.
   OUTPUT=$( (
   borg check {% if remote_path is defined %} --remote-path $REMOTE_PATH {% endif %} $REPOSITORY
-  ) 2>&1)
+  ) 2>&1 | tee --append /var/log/borg.{{ item.value.shortname }}.log)
   if [ $? -ne 0 ]
   then
     warning $OUTPUT
