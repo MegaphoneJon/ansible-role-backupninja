@@ -36,7 +36,10 @@ $REPOSITORY::'{hostname}-{now:%Y-%m-%d}' \
 --exclude '/home/*/Games' \
 --exclude '/home/*/.vscode-server' \
 --exclude '/home/*/drush-backups' \
+--exclude '**/civicrm/persist/contribute/dyn/' \
 --exclude '**/sites/default/files/css/' \
+--exclude '**/sites/default/files/ctools/css/' \
+--exclude '**/sites/default/files/php/twig/' \
 {% include "files/" + fqdn + "/borg-options.j2" ignore missing %}
 --exclude '**/sites/default/files/js/'
 ) 2>&1 | tee /var/log/borg.{{ item.value.shortname }}.log)
