@@ -26,19 +26,8 @@
     src: "{{ 'templates/' + item.value.name + '.j2' }}"
     dest: "{{ '/etc/backup.d/' + item.value.name }}"
     mode: 0600
-  with_dict:
-    info:
-      name: 10-info.sys
-    db:
-      name: 30-databases.mysql
-    db-structure:
-      name: 35-structure-only.sh
-    borg-local:
-      name: 50-borg-local.sh
-      shortname: local
-    borg-remote:
-      name: 60-borg-remote.sh
-      shortname: remote
+  with_dict: "{{ backupninja_templates }}"
+  tags: backupninja_templates
 
 - name: Configure backupninja.conf with Icinga2
   template:

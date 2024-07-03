@@ -1,3 +1,16 @@
 ---
 databases: "all"
 local_borg_dir: "/opt/borg"
+backupninja_templates:
+  info:
+    name: 10-info.sys
+  db:
+    name: 30-databases.mysql
+  db-structure:
+    name: 35-structure-only.sh
+  borg-local:
+    name: 50-borg-local.sh
+    shortname: local
+  borg-remote:
+    name: 60-borg-remote.sh
+    shortname: remote
