@@ -36,13 +36,14 @@ $REPOSITORY::'{hostname}-{now:%Y-%m-%d}' \
 --exclude '/home/*/Games' \
 --exclude '/home/*/.vscode-server' \
 --exclude '/home/*/drush-backups' \
+--exclude '/home/*/.drush/cache' \
 --exclude '**/civicrm/persist/contribute/dyn/' \
 --exclude '**/sites/default/files/css/' \
 --exclude '**/sites/default/files/ctools/css/' \
 --exclude '**/sites/default/files/php/twig/' \
 {% include "files/" + fqdn + "/borg-options.j2" ignore missing %}
 --exclude '**/sites/default/files/js/'
-) 2>&1 | tee /var/log/borg.{{ item.value.shortname }}.log)
+) 2>&1)
 # Are there any errors from the backup?
 if [ $? -ne 0 ]
 then
@@ -62,28 +63,31 @@ then
   fi
 fi
 info $OUTPUT
+printf "%s\n" "$OUTPUT" > /var/log/borg.{{ item.value.shortname }}.log
 
 # Remove old backups.
 OUTPUT=$( (
 borg prune -v $REPOSITORY --glob-archives '{hostname}-*' --keep-daily=15 --keep-weekly=9 --keep-monthly=6 {% if remote_path is defined %} --remote-path $REMOTE_PATH {% endif %} 
-) 2>&1 | tee --append /var/log/borg.{{ item.value.shortname }}.log)
+) 2>&1)
 if [ $? -ne 0 ]
   then
   warning $OUTPUT
 fi
 info $OUTPUT
+printf "%s\n" "$OUTPUT" >> /var/log/borg.{{ item.value.shortname }}.log
 
 {# FIXME: This "if" only exists until everyone is on borgbackup 1.2 (Ubuntu 22.04, Debian 12) #}
 {% if not((ansible_distribution == 'Debian' and ansible_distribution_major_version < '12') or (ansible_distribution == 'Ubuntu' and ansible_distribution_major_version < '22')) %}
 # Compact the backup.
 OUTPUT=$( (
 borg compact {% if remote_path is defined %} --remote-path $REMOTE_PATH {% endif %} $REPOSITORY
-) 2>&1 | tee --append /var/log/borg.{{ item.value.shortname }}.log)
+) 2>&1)
 if [ $? -ne 0 ]
 then
   warning $OUTPUT
 fi
 info $OUTPUT
+printf "%s\n" "$OUTPUT" >> /var/log/borg.{{ item.value.shortname }}.log
 {% endif %}
 
 DOW=$(date +'%A')
@@ -92,11 +96,12 @@ then
   # Check the integrity of the backup.
   OUTPUT=$( (
   borg check {% if remote_path is defined %} --remote-path $REMOTE_PATH {% endif %} $REPOSITORY
-  ) 2>&1 | tee --append /var/log/borg.{{ item.value.shortname }}.log)
+  ) 2>&1)
   if [ $? -ne 0 ]
   then
     warning $OUTPUT
   fi
   info $OUTPUT
+  printf "%s\n" "$OUTPUT" >> /var/log/borg.{{ item.value.shortname }}.log
 fi
 unset BORG_PASSPHRASE
