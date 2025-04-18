@@ -3,8 +3,8 @@
 REPOSITORY="{{ rsyncnet_user }}@{{ rsyncnet_server }}:{{ client + '-' + hostname }}"
 export BORG_RELOCATED_REPO_ACCESS_IS_OK=yes
 export BORG_PASSPHRASE='{{ lookup('passwordstore', client + '/' + hostname + '/borg/remote create=true length=32') }}'
-# On rsync.net: Specify /usr/local/bin/borg/borg for borg 0.29; /usr/local/bin/borg1 for 1.x
-{% set remote_path = '/usr/local/bin/borg1/borg1' %}
+# On rsync.net: Specify borg12 for borg 1.2; borg14 for borg1.4
+{% set remote_path = 'borg12' %}
 REMOTE_PATH={{ remote_path }}
 
 {% include 'borg-shared.j2' %}
