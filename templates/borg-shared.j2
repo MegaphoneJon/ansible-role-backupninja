@@ -24,7 +24,8 @@ $REPOSITORY::'{hostname}-{now:%Y-%m-%d}' \
 --exclude '/home/*/.steam/steam/steamapps/common/' \
 --exclude '/home/**/.cache' \
 --exclude '/root/.cache' \
---exclude '/home/**/.mozilla/firefox/*/Cache' \
+--exclude '/home/**/.mozilla/firefox/*default/Cache' \
+--exclude '/home/**/.mozilla/firefox/*default/storage' \
 --exclude '/home/**/.thunderbird/*/global-messages-db.sqlite' \
 --exclude '/home/**/snap/firefox/**/.cache' \
 --exclude '/home/**/snap/thunderbird/**/global-messages-db.sqlite' \
