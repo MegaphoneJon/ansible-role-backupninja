@@ -45,6 +45,7 @@ $REPOSITORY::'{hostname}-{now:%Y-%m-%d}' \
 --exclude '**/sites/default/files/css/' \
 --exclude '**/sites/default/files/ctools/css/' \
 --exclude '**/sites/default/files/php/twig/' \
+--exclude '/opt/nobackup' \
 {% include "files/" + fqdn + "/borg-options.j2" ignore missing %}
 --exclude '**/sites/default/files/js/'
 ) 2>&1)
