@@ -1,7 +1,11 @@
-#!/bin/sh
 {% if sites is defined %}
+{% set first = true %}
 {% for site in sites.values() %}
 {% if site.crm_logging_db_name is not none %}
+{% if first %}
+#!/bin/sh
+{% set first = false %}
+{% endif %}
 su root -c "/usr/bin/mysqldump --defaults-extra-file=/etc/mysql/debian.cnf --single-transaction=TRUE --complete-insert --add-drop-table \
  --quick --quote-names --no-data  {{ site.crm_logging_db_name }} \
  | /bin/gzip --rsyncable > '/var/backups/mysql/sqldump/{{ site.crm_logging_db_name }}_structure.sql.gz'"
