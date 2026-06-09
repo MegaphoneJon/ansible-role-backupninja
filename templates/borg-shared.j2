@@ -82,7 +82,7 @@ info $OUTPUT
 printf "%s\n" "$OUTPUT" >> /var/log/borg.{{ item.value.shortname }}.log
 
 {# FIXME: This "if" only exists until everyone is on borgbackup 1.2 (Ubuntu 22.04, Debian 12) #}
-{% if not((ansible_distribution == 'Debian' and ansible_distribution_major_version < '12') or (ansible_distribution == 'Ubuntu' and ansible_distribution_major_version < '22')) %}
+{% if not((ansible_facts.distribution == 'Debian' and ansible_facts.distribution_major_version < '12') or (ansible_facts.distribution == 'Ubuntu' and ansible_facts.distribution_major_version < '22')) %}
 # Compact the backup.
 OUTPUT=$( (
 borg compact {% if remote_path is defined %} --remote-path $REMOTE_PATH {% endif %} $REPOSITORY
